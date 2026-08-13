@@ -1,0 +1,19 @@
+{
+  "name": "Cozinha Lucrativa",
+  "short_name": "Cozinha Lucrativa",
+  "description": "Transforme sua cozinha em uma nova fonte de renda: cursos, calculadora de lucro, vitrine, encomendas e caderno.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAF6F0",
+  "theme_color": "#8A3F21",
+  "lang": "pt-BR",
+  "categories": ["education", "food", "business"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
