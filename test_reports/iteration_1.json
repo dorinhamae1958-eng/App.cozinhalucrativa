@@ -1,0 +1,24 @@
+{
+  "summary": "End-to-end verification of Stripe TEST-mode payment → access-grant flow for Cozinha Lucrativa. All backend checks pass. Created checkout session via POST /api/payments/checkout, drove Stripe hosted checkout (checkout.stripe.com) with test card 4242 4242 4242 4242 (exp 12/34, CVC 123, email compradora.teste@example.com) to completion, then verified GET /api/payments/status/{sid} flipped to payment_status='paid' and status='completed', that MongoDB access_grants has a document for the buyer email with expires_at ≈ 12 months in the future, and that /api/payments/config exposes pk_test_ + mode='test'. /api/courses returns 200 public, /api/auth/me returns 401 without auth.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": { "ui_bugs": [], "integration_issues": [], "design_issues": [] },
+  "test_report_links": [
+    "/app/backend/tests/test_stripe_payments.py",
+    "/app/test_reports/pytest/stripe_payments.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "payment_routes.py uses a synchronous pymongo MongoClient inside async FastAPI handlers — works at low volume but blocks the event loop; consider motor for production.",
+    "_resolve_origin logs 'origin mismatch' but silently ignores the client-provided origin_url — behavior is safe (uses APP_URL) but the origin_url field in CheckoutRequest is effectively decorative; document or drop it.",
+    "STRIPE_WEBHOOK_SECRET falls back to empty string; if unset in prod, /api/stripe/webhook will 400 on every event. Fine because status endpoint reconciles, but log a warning at startup when empty.",
+    "stripe.api_key falls back to 'sk_test_emergent' literal — that would cause misleading Stripe errors if env is missing; better to hard-fail on boot when STRIPE_SECRET_KEY is unset."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "100%", "frontend": "n/a (skipped per request)" },
+  "test_credentials": "Stripe test card 4242 4242 4242 4242 exp 12/34 CVC 123; buyer email compradora.teste@example.com; admin allowlist casadalise20026@gmail.com (not exercised).",
+  "seed_data_creation": "Created 1 payment_transactions row (session cs_test_b1CU0Ukov31L2xZJQy9JkWRlWWY48CekF4ASzzoeIZu2WEkqsgrfGBnJQL, status=completed/paid) and 1 access_grants row for compradora.teste@example.com (expires 2027-08-13). These are TEST-mode artifacts and safe to leave.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Regression file at /app/backend/tests/test_stripe_payments.py covers config, courses, auth 401, checkout creation+persistence, invalid lookup_key, unknown-session 404, and access-grant presence. E2E hosted-checkout automation (Playwright on checkout.stripe.com) requires unchecking the 'Save my information / Link' checkbox before submit — otherwise phone number becomes required and submit is blocked. Stripe hosted page auto-converts BRL→USD for the sandbox (US$11.41 for R$57.00); this is expected sandbox behavior and does not affect payment_transactions.amount which stays 5700 BRL.",
+  "rca of the issue": "N/A — no defects found. Payment → status reconciliation → access_grants upsert works as designed via GET /api/payments/status/{sid} even without a configured webhook."
+}

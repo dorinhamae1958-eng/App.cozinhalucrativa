@@ -39,5 +39,15 @@ Projeto importado de `cozinhalucrativa-main.zip` para `/app`. Somente CONFIG alt
 - **Domínio:** usando subdomínio da plataforma. Domínio próprio pode ser configurado no deploy.
 - **MongoDB:** local (preview). Para produção gerenciada, trocar `MONGO_URL` por URI do Atlas.
 
+## Registro — Acesso pago + Stripe sandbox (2026-06, iteração 2)
+- **Acesso pago ligado:** `BETA_MODE=false` (backend + frontend). Só entra quem tem grant de pagamento ou está na allowlist (casadalise20026@gmail.com).
+- **Stripe sandbox reivindicável (Flow A) provisionado:** conta `acct_1U3gxXPzKu0RiJZF` (BR, `charges_enabled=false` até KYC). Chaves reais de TESTE gravadas no `backend/.env` (sk_test_51U3..., pk_test_51U3..., whsec_...). Catálogo criado no boot: produto + preço `cozinha_lucrativa_57` = 5700 BRL (one-time). `STRIPE_MODE=test`, `STRIPE_TAX_MODE=diy`.
+- **Fluxo validado (testing_agent, 100% backend):** POST /api/payments/checkout → checkout.stripe.com; cartão teste 4242 → GET /api/payments/status vira paid → `access_grants` recebe grant de 12 meses. Regressão em `/app/backend/tests/test_stripe_payments.py`.
+- **Go-live Stripe:** o usuário deve REIVINDICAR o sandbox (KYC) pelo onboarding_url; a plataforma troca as chaves de teste por LIVE automaticamente no deploy. NÃO colar chaves pk_live/Buy Button pessoais (o app usa Checkout server-side + grant de acesso; Buy Button não integra com isso).
+- Tax mode atual: DIY (Stripe só processa; sem imposto). Alternativas: Stripe calcula (+0,5%) ou Stripe gerencia tudo (+3,5%). Trocável depois a pedido.
+
 ## Go-live
-Deploy pela plataforma Emergent (botão **Deploy**): HTTPS + domínio automáticos.
+Deploy pela plataforma Emergent (botão **Deploy**): HTTPS + domínio automáticos. Após o deploy + KYC do Stripe, a plataforma redeploya automaticamente com as chaves LIVE.
+
+## Pendente desta iteração
+- MongoDB Atlas: aguardando a string de conexão `mongodb+srv://...` do usuário (ainda não fornecida).
