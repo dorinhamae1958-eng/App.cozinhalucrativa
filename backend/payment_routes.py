@@ -62,10 +62,10 @@ _ALLOWED_ORIGINS = {
 def _resolve_origin(candidate: Optional[str], request: Request) -> str:
     """Determina a URL base segura para success/cancel.
 
-    Ordem de prioridade:
-      1) APP_URL do env (fonte da verdade em preview/prod).
-      2) Origin header do request.
-      3) Referer header do request.
+    Ordem de prioridade (agnóstica a ambiente preview/produção):
+      1) Origin header do request (domínio real que o usuário está acessando).
+      2) Referer header do request.
+      3) APP_URL do env (fallback configurado).
       4) request.base_url (fallback interno).
     O `candidate` (origin_url do body) é aceito só se bater com a base
     resolvida — nunca é usado como fonte única para evitar open-redirect.
@@ -77,9 +77,9 @@ def _resolve_origin(candidate: Optional[str], request: Request) -> str:
         return ""
 
     resolved = (
-        _norm(_APP_URL)
-        or _norm(request.headers.get("origin", ""))
+        _norm(request.headers.get("origin", ""))
         or _norm(request.headers.get("referer", ""))
+        or _norm(_APP_URL)
         or _norm(str(request.base_url))
     )
     if not resolved:

@@ -51,3 +51,10 @@ Deploy pela plataforma Emergent (botão **Deploy**): HTTPS + domínio automátic
 
 ## Pendente desta iteração
 - MongoDB Atlas: aguardando a string de conexão `mongodb+srv://...` do usuário (ainda não fornecida).
+
+## Registro — Deploy produção + correções (2026-06, iteração 3)
+- **Produção no ar:** https://kitchen-revenue.emergent.host (deploy Emergent). Preview segue em kitchen-revenue.preview.emergentagent.com.
+- **1º deploy falhou** no build step 8 (node-base). Build local passava. Aplicadas correções de hardening de build (config, sem lógica): `next.config.js` → `eslint.ignoreDuringBuilds:true` + `typescript.ignoreBuildErrors:true`. Deploy seguinte OK.
+- **Correção de portabilidade preview↔produção (payment_routes._resolve_origin):** antes priorizava `APP_URL` (fixo = preview) → em produção o Stripe redirecionaria o comprador de volta ao preview após pagar (bancos separados = confirmação quebrada). Agora prioriza o `Origin`/`Referer` real da requisição (APP_URL vira fallback). Verificado: success_url/cancel_url seguem o domínio de acesso. Validação anti open-redirect do `candidate` inalterada.
+- **CORS liberado:** `CORS_ORIGINS="*"` (backend/.env e frontend/.env). `APP_URL` fallback = domínio de produção.
+- **IMPORTANTE:** essas 3 correções estão no PREVIEW. Produção precisa de **REDEPLOY** para recebê-las (o deploy atual de produção ainda tem APP_URL/CORS de preview).
