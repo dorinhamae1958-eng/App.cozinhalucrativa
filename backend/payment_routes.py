@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 from urllib.parse import urlparse
@@ -98,6 +99,7 @@ class CheckoutRequest(BaseModel):
     quantity: int = Field(1, ge=1, le=10)
     origin_url: str = Field(..., description="URL de origem do cliente (usada para success/cancel).")
     user_id: Optional[str] = None
+    ref: Optional[str] = Field(None, max_length=24, description="Código do afiliado (?ref=).")
 
 
 def _now() -> datetime:
@@ -208,6 +210,7 @@ async def create_checkout(req: CheckoutRequest, request: Request):
             "session_id": session.id,
             "user_id": req.user_id,
             "lookup_key": req.lookup_key,
+            "affiliate_code": (re.sub(r"[^A-Za-z0-9]+", "", req.ref).upper()[:24] if req.ref else None),
             "amount": float((price.unit_amount or 0) * req.quantity),
             "currency": price.currency,
             "status": "initiated",

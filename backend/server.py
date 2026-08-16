@@ -18,6 +18,9 @@ load_dotenv()
 from ai_routes import router as ai_router
 from plantao_routes import router as plantao_router
 from payment_routes import router as payment_router
+from mp_routes import router as mp_router
+from affiliate_routes import router as affiliate_router
+from access_code_routes import router as access_code_router
 from setup_stripe import run_setup as run_stripe_setup
 
 NEXT_URL = "http://localhost:3000"
@@ -30,6 +33,12 @@ app.include_router(ai_router)
 app.include_router(plantao_router)
 # Pagamentos (Stripe Checkout) — atendidos direto no FastAPI.
 app.include_router(payment_router)
+# Pagamentos (Mercado Pago Checkout Pro) — gateway principal.
+app.include_router(mp_router)
+# Sistema de afiliados (admin).
+app.include_router(affiliate_router)
+# Códigos de acesso social (cupom VIP 100% off) — admin.
+app.include_router(access_code_router)
 
 
 @app.on_event("startup")

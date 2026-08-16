@@ -32,6 +32,9 @@ import NotFound from "@/pages/NotFound.jsx";
 import LegalDoc from "@/pages/LegalDoc.jsx";
 import CadernoFab from "@/components/CadernoFab";
 import PWAInstall from "@/components/PWAInstall";
+import AffiliatesAdmin from "@/pages/AffiliatesAdmin";
+import AccessCodesAdmin from "@/pages/AccessCodesAdmin";
+import { captureRefFromUrl } from "@/lib/affiliate";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -205,6 +208,22 @@ function AppShell() {
             }
           />
           <Route
+            path="/admin/afiliados"
+            element={
+              <ProtectedRoute>
+                <AffiliatesAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/codigos"
+            element={
+              <ProtectedRoute>
+                <AccessCodesAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/jornada/certificado"
             element={
               <ProtectedRoute>
@@ -245,6 +264,7 @@ function AppShell() {
 function App() {
   useEffect(() => {
     document.documentElement.classList.add("dark");
+    captureRefFromUrl();
   }, []);
 
   return (

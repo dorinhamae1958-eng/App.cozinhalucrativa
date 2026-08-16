@@ -14,12 +14,18 @@ export default function PaymentSuccess() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const sessionId = params.get("session_id");
+  const mpOrder = params.get("mp_order");
+  const granted = params.get("granted");
   const [status, setStatus] = useState("checking");
   const attempts = useRef(0);
-  const MAX_ATTEMPTS = 10;
+  const MAX_ATTEMPTS = 12;
 
   useEffect(() => {
-    if (!sessionId) {
+    if (granted === "1") {
+      setStatus("paid");
+      return;
+    }
+    if (!sessionId && !mpOrder) {
       setStatus("error");
       return;
     }
@@ -33,6 +39,13 @@ export default function PaymentSuccess() {
       }
       attempts.current += 1;
       try {
+        if (mpOrder) {
+          const { data } = await api.get(`/payments/mercadopago/status/${mpOrder}`);
+          if (data.status === "approved") { setStatus("paid"); return; }
+          if (["rejected", "cancelled"].includes(data.status)) { setStatus("failed"); return; }
+          setTimeout(poll, 2500);
+          return;
+        }
         const { data } = await api.get(`/payments/status/${sessionId}`);
         if (data.payment_status === "paid") {
           setStatus("paid");
@@ -55,7 +68,7 @@ export default function PaymentSuccess() {
     return () => {
       cancelled = true;
     };
-  }, [sessionId]);
+  }, [sessionId, mpOrder, granted]);
 
   return (
     <div
