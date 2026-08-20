@@ -22,6 +22,7 @@ from mp_routes import router as mp_router
 from affiliate_routes import router as affiliate_router
 from access_code_routes import router as access_code_router
 from setup_stripe import run_setup as run_stripe_setup
+from seed_access_codes import run_seed as run_access_codes_seed
 
 NEXT_URL = "http://localhost:3000"
 
@@ -50,6 +51,16 @@ async def _bootstrap_stripe():
         # Falha aqui não deve derrubar o backend; o checkout vai avisar depois.
         import logging
         logging.getLogger(__name__).exception("Stripe bootstrap falhou.")
+
+
+@app.on_event("startup")
+async def _bootstrap_access_codes():
+    # Garante que os códigos promocionais grátis existam. Idempotente (não zera usos).
+    try:
+        run_access_codes_seed()
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception("Seed de códigos promocionais falhou.")
 
 # Long-lived async HTTP client
 client = httpx.AsyncClient(base_url=NEXT_URL, timeout=60.0)

@@ -120,10 +120,10 @@ export default function CourseCard({ course, index = 0, progress = null, to = nu
         {progress === null && (
           <div className="mt-3 flex items-center justify-between border-t border-stone-800 pt-4">
             <span className="text-[10px] uppercase tracking-[0.2em] text-stone-500">
-              investimento no curso
+              acesso completo
             </span>
-            <span className="font-display text-2xl font-black text-amber-400">
-              {BRL(course.price)}
+            <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-300">
+              Incluído
             </span>
           </div>
         )}

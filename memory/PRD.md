@@ -52,6 +52,24 @@ Deploy pela plataforma Emergent (botão **Deploy**): HTTPS + domínio automátic
 ## Pendente desta iteração
 - MongoDB Atlas: aguardando a string de conexão `mongodb+srv://...` do usuário (ainda não fornecida).
 
+## Registro — Pagamentos MP + Afiliados A/B + Códigos VIP (2026, iteração 4)
+Implementadas as atualizações enviadas pelo usuário via zip (mergeadas em /app, sem tocar em .env/next.config):
+
+**Mercado Pago (gateway principal, Checkout Pro):** `mp_routes.py` — preference/status/webhook, PIX+cartão, concede acesso (access_grants 12m) só quando `approved`. Stripe mantido no backend mas OCULTO na UI (`SHOW_STRIPE=false` em Plans.jsx). PENDENTE: credenciais de teste MP (MP_ACCESS_TOKEN/MP_WEBHOOK_SECRET) — sem elas, preference retorna 503.
+
+**Afiliados 2 níveis (A/B)** — `commissions.py` (taxas fixas): venda direta A=50%; venda de B → B=30% + indicador A=30% (override automático) + plataforma=40%. Comissão só conta quando aprovado. `affiliate_routes.py` (generation/parent), Stripe+MP gravam `commission` na venda. Painel /admin/afiliados. Link `?ref=CODIGO` atribui venda (MP e Stripe). Validado (testing_agent 100%): A 50% + override 30% dos B; B 30%.
+
+**Códigos de acesso social (VIP 100% off)** — `access_code_routes.py`: quando o valor final é R$0, NÃO chama checkout/MP/Stripe — acesso liberado direto (access_grants) e resgate registrado. Controle de usos (atômico), validade, plano. Auto-seed no boot (`seed_access_codes.py`): VIP100(20), PASTOR100(50), CONVIDADO100(100). Painel /admin/codigos (código, quem usou, data, usos restantes). Validado (testing_agent 100%): limite de usos, expiração, idempotência por e-mail.
+
+**Login:** removida tela /entrar — usuário não logado vai direto pro Google (App.js LoginRedirect).
+
+Deps adicionadas: `mercadopago==3.5.0`, `email-validator`. Build de produção (next build) OK. testing_agent iteração 2: 23/23 backend.
+
+## Pendências
+- **Mercado Pago:** credenciais de TESTE do usuário para ativar o checkout (hoje 503).
+- **Redeploy** para levar tudo à produção.
+- MongoDB Atlas (opcional).
+
 ## Registro — Deploy produção + correções (2026-06, iteração 3)
 - **Produção no ar:** https://kitchen-revenue.emergent.host (deploy Emergent). Preview segue em kitchen-revenue.preview.emergentagent.com.
 - **1º deploy falhou** no build step 8 (node-base). Build local passava. Aplicadas correções de hardening de build (config, sem lógica): `next.config.js` → `eslint.ignoreDuringBuilds:true` + `typescript.ignoreBuildErrors:true`. Deploy seguinte OK.

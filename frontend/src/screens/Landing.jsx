@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { NAV_GROUPS } from "@/lib/nav-groups";
 import { Button } from "@/components/ui/button";
@@ -47,7 +48,7 @@ const PILLAR_ICONS = {
   marca: Store,
 };
 
-// 10 oportunidades. Card em 2 camadas: fechado mostra só a oportunidade;
+// 11 oportunidades. Card em 2 camadas: fechado mostra só a oportunidade;
 // ao expandir, mostra investimento, preço e um cenário de faturamento BRUTO
 // (preço de referência × volume semanal × ~4 semanas). Nada de promessa.
 const COURSES = [
@@ -57,6 +58,7 @@ const COURSES = [
   { slug: "geladinhos-gourmet",  label: "Geladinhos Gourmet",          subtitle: "Grande procura em períodos quentes e baixo custo para começar.",              idealFor: "Quem quer começar com pouca grana",                 investment: "R$ 80–200",  price: "≈ R$ 5 / unidade",    objective: "R$ 1.600–2.400", objectivePeriod: "/mês",          volume: "80–120 unidades por semana",          tags: ["Venda direta", "Vizinhança", "WhatsApp", "Verão"], image: "/images/geladinho.jpg" },
   { slug: "plr-pascoa",          label: "Ovos & Chocolates de Páscoa", subtitle: "Uma temporada capaz de concentrar boa parte do faturamento do ano.",          idealFor: "Quem quer aproveitar datas comemorativas",          investment: "R$ 250–600", price: "≈ R$ 70 / ovo",       objective: "R$ 1.610–2.240", objectivePeriod: " por temporada", volume: "23–32 ovos na temporada",             seasonal: true, tags: ["Encomendas", "Datas comemorativas", "WhatsApp", "Instagram"], image: "/images/ovo-pascoa.jpg" },
   { slug: "receitas-kids",       label: "Lanches Kids",                subtitle: "Ideal para escolas, aniversários e festas.",                                  idealFor: "Quem atende festas, escolas e eventos",             investment: "R$ 150–350", price: "≈ R$ 12 / lanche",    objective: "R$ 1.632–2.400", objectivePeriod: "/mês",          volume: "34–50 lanches por semana",            tags: ["Festas", "Escolas", "Encomendas", "WhatsApp"], image: "/images/alimento-saudavel.png" },
+  { slug: "marmita-fitness",     label: "Marmitas Fitness",            subtitle: "Marmitas congeladas de alta procura para renda recorrente toda semana.",        idealFor: "Quem quer lucrar com marmitas saudáveis e congeladas", investment: "R$ 150–400", price: "≈ R$ 25 / unidade",   objective: "R$ 5.000",        objectivePeriod: "/mês",          volume: "50 marmitas por semana",              tags: ["Público fitness", "Venda recorrente", "Delivery", "WhatsApp"], image: "/images/cat-marmita.jpg" },
   { slug: "receitas-lactose",    label: "Confeitaria Sem Lactose",     subtitle: "Atenda um público que busca opções específicas e diferenciadas.",             idealFor: "Quem quer começar com produtos de nicho",           investment: "R$ 200–500", price: "≈ R$ 15 / porção",    objective: "R$ 1.620–2.400", objectivePeriod: "/mês",          volume: "27–40 porções por semana",            tags: ["Nicho específico", "Encomendas", "WhatsApp", "Instagram"], image: "/images/sem-lactose.png" },
   { slug: "receitas-zero-gluten",label: "Confeitaria Sem Glúten",      subtitle: "Especialização que gera diferenciação e fidelização.",                        idealFor: "Quem quer atender público celíaco e sensível ao glúten", investment: "R$ 250–600", price: "≈ R$ 17 / porção", objective: "≈ R$ 1.630–2.180", objectivePeriod: "/mês",       volume: "24–32 porções por semana",            tags: ["Nicho específico", "Encomendas", "WhatsApp", "Instagram"], image: "/images/sem-gluten.jpg" },
   { slug: "receitas-low-carb",   label: "Receitas Low Carb",           subtitle: "Mercado fitness em crescimento e ticket mais elevado.",                       idealFor: "Quem quer atender o público fitness e saudável",    investment: "R$ 150–300", price: "≈ R$ 15 / porção",    objective: "R$ 1.620–2.400", objectivePeriod: "/mês",          volume: "27–40 porções por semana",            tags: ["Público fitness", "Delivery", "WhatsApp", "Instagram"], image: "/images/receitas-low-carb.webp" },
@@ -207,7 +209,7 @@ function OpportunityCard({ c }) {
 }
 
 const CHECKLIST = [
-  "10 possibilidades de renda + 2 conteúdos bônus",
+  "11 possibilidades de renda + 2 conteúdos bônus",
   "Passo a passo em vídeo para aprender a fazer",
   "Calculadora de Lucro por produto",
   "Vitrine profissional com link único",
@@ -284,14 +286,16 @@ function PriceBlock({ testId }) {
         pagamento único
       </span>
       <span className="w-full text-sm text-[#5F4A3F]">
-        <strong>12 meses de acesso ao app</strong>. ou {PRICE_INSTALLMENTS}x de {formatBRL(PRICE_INSTALLMENT_VALUE)} sem juros
+        <strong>12 meses de acesso ao app</strong>. ou {PRICE_INSTALLMENTS}x de {formatBRL(PRICE_INSTALLMENT_VALUE)}
       </span>
     </div>
   );
 }
 
 export default function Landing() {
-  const { start, loading } = useCheckout();
+  const navigate = useNavigate();
+  const start = () => navigate("/planos");
+  const loading = false;
 
   // Pré-carrega config Stripe (útil para diagnósticos e para “aquecer” a rota).
   useEffect(() => {

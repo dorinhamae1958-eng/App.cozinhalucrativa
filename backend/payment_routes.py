@@ -25,6 +25,8 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 from pymongo import MongoClient
 
+from commissions import assemble_sale_record
+
 load_dotenv()
 
 logger = logging.getLogger(__name__)
@@ -150,6 +152,28 @@ def _grant_access(email: str, session_id: str) -> None:
     )
 
 
+def _store_commission(session_id: str, status: str) -> None:
+    """Grava/atualiza o registro de comissão A/B da transação Stripe."""
+    tx = payment_transactions.find_one({"session_id": session_id})
+    if not tx:
+        return
+    seller_code = tx.get("affiliate_code")
+    seller_gen = parent_code = parent_gen = None
+    if seller_code:
+        seller = _db["affiliates"].find_one({"code": seller_code}, {"_id": 0})
+        if seller:
+            seller_gen = (seller.get("generation") or "A").upper()
+            parent_code = seller.get("parent_affiliate_id")
+            if parent_code:
+                parent = _db["affiliates"].find_one({"code": parent_code}, {"_id": 0})
+                parent_gen = (parent.get("generation") or "A").upper() if parent else None
+    record = assemble_sale_record(
+        tx.get("amount", 0), seller_code, seller_gen, parent_code, parent_gen, status
+    )
+    payment_transactions.update_one(
+        {"session_id": session_id}, {"$set": {"commission": record}}
+    )
+
 
 @router.post("/api/payments/checkout")
 async def create_checkout(req: CheckoutRequest, request: Request):
@@ -247,6 +271,7 @@ async def get_status(session_id: str):
                 )
                 record = payment_transactions.find_one({"session_id": session_id})
                 _grant_access(_extract_email(s), session_id)
+                _store_commission(session_id, "paid")
         except stripe.error.StripeError:
             pass  # fica com o que está no banco
 
@@ -283,12 +308,14 @@ async def stripe_webhook(request: Request):
             },
         )
         _grant_access(_extract_email(obj), obj["id"])
+        _store_commission(obj["id"], "paid")
     elif t == "checkout.session.async_payment_succeeded":
         payment_transactions.update_one(
             {"session_id": obj["id"]},
             {"$set": {"payment_status": "paid", "updated_at": _now()}},
         )
         _grant_access(_extract_email(obj), obj["id"])
+        _store_commission(obj["id"], "paid")
     elif t == "checkout.session.async_payment_failed":
         payment_transactions.update_one(
             {"session_id": obj["id"]},
@@ -322,6 +349,9 @@ async def stripe_webhook(request: Request):
                 }
             },
         )
+        _tx = payment_transactions.find_one({"stripe_payment_intent_id": obj.get("payment_intent")})
+        if _tx:
+            _store_commission(_tx["session_id"], "refunded")
 
     return {"status": "ok"}
 

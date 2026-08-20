@@ -203,7 +203,7 @@ export default function Header() {
             onPublicPage ? (
               <Button
                 data-testid="login-btn"
-                onClick={() => navigate("/entrar")}
+                onClick={login}
                 className="rounded-full px-6 font-semibold text-white shadow-[0_4px_16px_rgba(162,77,42,0.35)] transition-all"
                 style={{ backgroundColor: "#A24D2A" }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#8A3F21"}

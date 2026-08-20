@@ -13,9 +13,12 @@ import { toast } from "sonner";
 
 const PRICE = 57;
 const LOOKUP_KEY = "cozinha_lucrativa_57";
+// Mercado Pago é o único meio de pagamento visível. O Stripe permanece
+// oculto (backend intacto). Basta trocar para true se um dia quiser reexibi-lo.
+const SHOW_STRIPE = false;
 
 const FEATURES = [
-  "Acesso a todos os 10 cursos (todas as modalidades)",
+  "Acesso a todos os 11 cursos (todas as modalidades)",
   "Calculadora de preço e lucro ilimitada",
   "Vitrine pública para vender sob encomenda",
   "Controle de encomendas e clientes",
@@ -218,7 +221,8 @@ export default function Plans() {
               PIX na hora · cartão de crédito · Mercado Pago
             </p>
 
-            {/* Stripe — secundário */}
+            {/* Stripe — oculto (Mercado Pago é o único meio visível) */}
+            {SHOW_STRIPE && (
             <button
               data-testid="checkout-stripe-btn"
               disabled={payingMp || payingStripe}
@@ -231,6 +235,7 @@ export default function Plans() {
                 <><CreditCard className="h-4 w-4" /> Pagar com cartão (Stripe)</>
               )}
             </button>
+            )}
 
             <div className="mt-6 flex items-center justify-center gap-4 text-[11px] font-semibold text-[#5F4A3F]">
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-[#8A3F21]" /> Pagamento seguro</span>
@@ -247,7 +252,7 @@ export default function Plans() {
                   data-testid="access-code-input"
                   value={accessCode}
                   onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-                  placeholder="Ex: VIP100"
+                  placeholder="Digite seu código"
                   className="h-11 rounded-xl border-[#EED3C3] bg-white font-mono text-[#2E1B12]"
                 />
                 <Button
@@ -260,15 +265,7 @@ export default function Plans() {
                   {applyingCode ? <Loader2 className="h-4 w-4 animate-spin" /> : "Aplicar"}
                 </Button>
               </div>
-              <p className="mt-1.5 text-[11px] text-[#7D6656]">
-                Códigos VIP liberam o acesso sem pagamento. Use o e-mail acima.
-              </p>
             </div>
-
-            <p className="mt-5 text-center text-[11px] leading-relaxed text-[#7D6656]">
-              Após pagar, entre com o Google usando o <b>mesmo e-mail</b> do
-              checkout e seu acesso é liberado automaticamente.
-            </p>
           </div>
 
           {/* Lista de benefícios */}

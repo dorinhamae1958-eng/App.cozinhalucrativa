@@ -1,0 +1,31 @@
+{
+  "summary": "Backend-only regression for social access codes (VIP 100% off) and two-tier A/B affiliate system. Created /app/backend/tests/test_social_codes_and_ab_affiliates.py with 23 tests; all pass. Verified admin auth guardrails (401 without Bearer, 200 with 'test-admin-token'), auto-seeded codes VIP100/PASTOR100/CONVIDADO100 (validate returns discount_pct=100, final_price=0, free=true), free redeem path grants 12-month access, logs redemption, atomically increments used_count, and is idempotent for the same email, per-code max_uses limit enforced with 400 'limite de usos', expired codes return valid:false reason:'expired'. Affiliate creation: A ok; B with parent A ok; B without parent -> 400; B with self as parent -> 400; B whose parent is another B -> 400. Click tracking: known increments counter; unknown returns ok:false. Commission math verified via injected approved mp_orders: ANAA (gen A) revenue 57 -> direct 50% (28.50) + override 30% on BRUB revenue 57 (17.10) = 45.60 total, override_commission=17.10; BRUB (gen B) 30% = 17.10; rules object {50,30,30} returned. Stripe checkout persists affiliate_code='ANAA' on payment_transactions. Mercado Pago config returns enabled:false; POST preference returns 503 (MP_ACCESS_TOKEN empty). No live MP checkout attempted.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/affiliates, POST /api/access-codes", "issue": "Pydantic body validation is evaluated before auth check, so a syntactically-invalid unauthenticated body returns 422 instead of 401. Not a real security issue (auth is enforced), but worth noting for API consistency. Tests were updated to send valid bodies so 401 is exercised."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_social_codes_and_ab_affiliates.py",
+    "/app/test_reports/pytest/social_codes.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "access_code_routes._grant_access: comment states expires ~12 months but implementation uses timedelta(days=365) — semantically 1 year (12 months). OK, but the earlier comment 'expires_at 12 months' is fine — no action.",
+    "affiliate_routes.list_affiliates aggregates revenue from both mp_orders (BRL reais) and payment_transactions (Stripe cents converted to reais). Correct today, but if a non-BRL Stripe currency is ever configured, the aggregation would mix currencies. Consider tagging currency per sale.",
+    "access_code_routes.redeem: partial-discount codes (pct<100) block redeem correctly, but there is no endpoint that applies a partial code to a paid checkout — expected per current scope, worth flagging for future.",
+    "Admin auth returns 422 (validation) before 401 when payload is invalid — cosmetic; consider a Depends(_require_admin) at route-level so auth runs before body parsing if uniformity is desired."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_social_codes_and_ab_affiliates.py"
+  ],
+  "success_rate": {"backend": "100% (23/23)", "frontend": "not tested (skipped per request)"},
+  "test_credentials": "Admin Bearer token 'test-admin-token' (user_testadmin, email casadalise20026@gmail.com). Already seeded in user_sessions.",
+  "seed_data_creation": "Created (and cleaned up before+after via fixture): access_codes LIMIT1, OLD1; affiliates ANAA (A), BRUB (B under ANAA); approved mp_orders with order_id prefix TEST_ for ANAA and BRUB (amount 57 BRL). Existing VIP100 used_count is incremented by 1 for email novo.aluno@example.com (grant + redemption row also cleaned).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All A/B commission + access-code behaviors are covered by /app/backend/tests/test_social_codes_and_ab_affiliates.py. The fixture cleans TEST_ mp_orders and codes/affiliates it creates; VIP100 seed remains intact. If MP_ACCESS_TOKEN is later configured, the MercadoPagoGuard tests must be updated (currently assert enabled:false and 503).",
+  "rca of the issue": "N/A — no defects found in this iteration."
+}

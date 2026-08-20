@@ -27,7 +27,6 @@ import Materiais from "@/pages/Materiais";
 import Perfil from "@/pages/Perfil";
 import PlantaoDuvidas from "@/pages/PlantaoDuvidas";
 import PlantaoAdmin from "@/pages/PlantaoAdmin";
-import Entrar from "@/pages/Entrar";
 import NotFound from "@/pages/NotFound.jsx";
 import LegalDoc from "@/pages/LegalDoc.jsx";
 import CadernoFab from "@/components/CadernoFab";
@@ -35,6 +34,19 @@ import PWAInstall from "@/components/PWAInstall";
 import AffiliatesAdmin from "@/pages/AffiliatesAdmin";
 import AccessCodesAdmin from "@/pages/AccessCodesAdmin";
 import { captureRefFromUrl } from "@/lib/affiliate";
+
+function LoginRedirect() {
+  const { login } = useAuth();
+  useEffect(() => {
+    login();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return (
+    <div className="flex min-h-screen items-center justify-center" style={{ background: "#FAF6F0" }}>
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#A24D2A] border-t-transparent" />
+    </div>
+  );
+}
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -45,8 +57,8 @@ function ProtectedRoute({ children }) {
       </div>
     );
   }
-  // Acesso pago: sem login → tela de entrar; logado mas sem assinatura → pagamento.
-  if (!user) return <Navigate to="/entrar" replace />;
+  // Acesso pago: sem login → login Google direto; logado mas sem assinatura → pagamento.
+  if (!user) return <LoginRedirect />;
   if (!user.has_access) return <Navigate to="/planos" replace />;
   return children;
 }
@@ -90,8 +102,6 @@ function AppShell() {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<LandingOrDashboard />} />
-          <Route path="/entrar" element={<Entrar />} />
-          <Route path="/login" element={<Entrar />} />
           <Route path="/planos" element={<Plans />} />
           <Route path="/curso/:slug" element={<CourseDetail />} />
           <Route

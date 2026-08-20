@@ -24,6 +24,8 @@ from fastapi import APIRouter, HTTPException, Request
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field
 
+from commissions import DIRECT_A_SELLER_RATE, B_SELLER_RATE, B_PARENT_RATE
+
 load_dotenv()
 
 router = APIRouter(prefix="/api/affiliates", tags=["affiliates"])
@@ -98,14 +100,20 @@ class AffiliateCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=80)
     code: Optional[str] = Field(None, max_length=24)
     commission_pct: Optional[float] = Field(None, ge=0, le=100)
+    commission_rate: Optional[float] = Field(None, ge=0, le=100)
     note: Optional[str] = Field(None, max_length=300)
+    generation: Optional[str] = Field(None, max_length=1)
+    parent_code: Optional[str] = Field(None, max_length=24)
 
 
 class AffiliateUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=2, max_length=80)
     commission_pct: Optional[float] = Field(None, ge=0, le=100)
+    commission_rate: Optional[float] = Field(None, ge=0, le=100)
     note: Optional[str] = Field(None, max_length=300)
     active: Optional[bool] = None
+    generation: Optional[str] = Field(None, max_length=1)
+    parent_code: Optional[str] = Field(None, max_length=24)
 
 
 # --- Stats aggregation ---
@@ -193,12 +201,35 @@ async def create_affiliate(body: AffiliateCreate, request: Request):
         raise HTTPException(400, "Código inválido.")
     if await db.affiliates.find_one({"code": code}):
         raise HTTPException(409, f"Já existe um afiliado com o código {code}.")
-    pct = body.commission_pct if body.commission_pct is not None else DEFAULT_COMMISSION_PCT
+
+    rate = body.commission_rate if body.commission_rate is not None else body.commission_pct
+    pct = rate if rate is not None else DEFAULT_COMMISSION_PCT
+
+    generation = (body.generation or "A").upper()
+    if generation not in ("A", "B"):
+        raise HTTPException(400, "Geração inválida (use A ou B).")
+
+    parent_code = None
+    if generation == "B":
+        parent_code = _slugify_code(body.parent_code) if body.parent_code else ""
+        if not parent_code:
+            raise HTTPException(400, "Afiliado B precisa de um indicador A (parent_code).")
+        if parent_code == code:
+            raise HTTPException(400, "Um afiliado não pode indicar a si mesmo.")
+        parent = await db.affiliates.find_one({"code": parent_code}, projection={"_id": 0})
+        if not parent:
+            raise HTTPException(404, f"Indicador {parent_code} não encontrado.")
+        if (parent.get("generation") or "A").upper() != "A":
+            raise HTTPException(400, "O indicador de um afiliado B deve ser da geração A.")
+
     doc = {
         "code": code,
         "name": body.name.strip(),
         "note": (body.note or "").strip(),
         "commission_pct": float(pct),
+        "commission_rate": float(pct),
+        "generation": generation,
+        "parent_affiliate_id": parent_code,
         "active": True,
         "created_at": _now(),
     }
@@ -217,33 +248,66 @@ async def list_affiliates(request: Request):
     affs = await db.affiliates.find({}, projection={"_id": 0}).sort("created_at", -1).to_list(500)
     codes = [a["code"] for a in affs]
     stats = await _stats_for_codes(codes)
+
+    gen_by_code = {a["code"]: (a.get("generation") or "A").upper() for a in affs}
+    parent_by_code = {a["code"]: a.get("parent_affiliate_id") for a in affs}
+    revenue_by_code = {c: float(stats.get(c, {}).get("revenue", 0.0)) for c in codes}
+    # Filhos de cada A (para o override automático de 30% sobre vendas dos B).
+    children = {}
+    for c in codes:
+        p = parent_by_code.get(c)
+        if p:
+            children.setdefault(p, []).append(c)
+
     items = []
     totals = {"clicks": 0, "sales": 0, "revenue": 0.0, "commission": 0.0}
     for a in affs:
-        s = stats.get(a["code"], {"clicks": 0, "sales": 0, "revenue": 0.0})
-        pct = float(a.get("commission_pct", DEFAULT_COMMISSION_PCT))
-        commission = round(s["revenue"] * pct / 100.0, 2)
+        code = a["code"]
+        gen = gen_by_code[code]
+        s = stats.get(code, {"clicks": 0, "sales": 0, "revenue": 0.0})
+        own_rev = float(s["revenue"])
+        if gen == "B":
+            own_commission = own_rev * B_SELLER_RATE
+            override_commission = 0.0
+            effective_rate = round(B_SELLER_RATE * 100)
+        else:  # A
+            own_commission = own_rev * DIRECT_A_SELLER_RATE
+            override_rev = sum(revenue_by_code.get(ch, 0.0) for ch in children.get(code, []))
+            override_commission = override_rev * B_PARENT_RATE
+            effective_rate = round(DIRECT_A_SELLER_RATE * 100)
+        commission = round(own_commission + override_commission, 2)
         ca = a.get("created_at")
         items.append({
-            "code": a["code"],
+            "code": code,
             "name": a.get("name"),
             "note": a.get("note", ""),
-            "commission_pct": pct,
+            "generation": gen,
+            "parent_affiliate_id": parent_by_code.get(code),
+            "commission_rate_pct": effective_rate,
+            "override_commission": round(override_commission, 2),
             "active": a.get("active", True),
             "created_at": ca.isoformat() if hasattr(ca, "isoformat") else ca,
             "clicks": s["clicks"],
             "sales": s["sales"],
-            "revenue": round(s["revenue"], 2),
+            "revenue": round(own_rev, 2),
             "commission": commission,
             "conversion": round((s["sales"] / s["clicks"]) * 100, 1) if s["clicks"] else 0.0,
         })
         totals["clicks"] += s["clicks"]
         totals["sales"] += s["sales"]
-        totals["revenue"] += s["revenue"]
+        totals["revenue"] += own_rev
         totals["commission"] += commission
     totals["revenue"] = round(totals["revenue"], 2)
     totals["commission"] = round(totals["commission"], 2)
-    return {"items": items, "totals": totals, "default_commission_pct": DEFAULT_COMMISSION_PCT}
+    return {
+        "items": items,
+        "totals": totals,
+        "rules": {
+            "direct_a_seller_pct": round(DIRECT_A_SELLER_RATE * 100),
+            "b_seller_pct": round(B_SELLER_RATE * 100),
+            "b_parent_pct": round(B_PARENT_RATE * 100),
+        },
+    }
 
 
 # --- Admin: atualizar afiliado ---
@@ -252,15 +316,42 @@ async def update_affiliate(code: str, body: AffiliateUpdate, request: Request):
     await _require_admin(request)
     db = _db()
     code = _slugify_code(code)
+    current = await db.affiliates.find_one({"code": code}, projection={"_id": 0})
+    if not current:
+        raise HTTPException(404, "Afiliado não encontrado.")
     patch = {}
     if body.name is not None:
         patch["name"] = body.name.strip()
-    if body.commission_pct is not None:
-        patch["commission_pct"] = float(body.commission_pct)
+    rate = body.commission_rate if body.commission_rate is not None else body.commission_pct
+    if rate is not None:
+        patch["commission_rate"] = float(rate)
+        patch["commission_pct"] = float(rate)
     if body.note is not None:
         patch["note"] = body.note.strip()
     if body.active is not None:
         patch["active"] = bool(body.active)
+
+    new_gen = (body.generation or current.get("generation") or "A").upper()
+    if body.generation is not None:
+        if new_gen not in ("A", "B"):
+            raise HTTPException(400, "Geração inválida (use A ou B).")
+        patch["generation"] = new_gen
+    if body.parent_code is not None or body.generation is not None:
+        if new_gen == "B":
+            parent_code = _slugify_code(body.parent_code) if body.parent_code else (current.get("parent_affiliate_id") or "")
+            if not parent_code:
+                raise HTTPException(400, "Afiliado B precisa de um indicador A (parent_code).")
+            if parent_code == code:
+                raise HTTPException(400, "Um afiliado não pode indicar a si mesmo.")
+            parent = await db.affiliates.find_one({"code": parent_code}, projection={"_id": 0})
+            if not parent:
+                raise HTTPException(404, f"Indicador {parent_code} não encontrado.")
+            if (parent.get("generation") or "A").upper() != "A":
+                raise HTTPException(400, "O indicador de um afiliado B deve ser da geração A.")
+            patch["parent_affiliate_id"] = parent_code
+        else:
+            patch["parent_affiliate_id"] = None
+
     if not patch:
         raise HTTPException(400, "Nada para atualizar.")
     res = await db.affiliates.update_one({"code": code}, {"$set": patch})

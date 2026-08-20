@@ -191,13 +191,14 @@ export default function CourseDetail() {
                   </>
                 ) : (
                   <>
-                    <p className="text-xs uppercase tracking-widest text-stone-500">investimento</p>
+                    <p className="text-xs uppercase tracking-widest text-amber-500 font-semibold">acesso completo</p>
                     <div className="mt-1 flex items-baseline gap-2">
                       <span className="font-display text-5xl font-black text-amber-400">
-                        {BRL(course.price)}
+                        {BRL(57)}
                       </span>
+                      <span className="text-sm text-stone-500">à vista</span>
                     </div>
-                    <p className="mt-1 text-xs text-stone-500">à vista ou em até 12x no cartão</p>
+                    <p className="mt-1 text-xs text-stone-500">pagamento único · libera <b className="text-stone-300">todos os cursos</b> por 12 meses</p>
 
                     <Button
                       data-testid="buy-course-btn"
@@ -206,7 +207,7 @@ export default function CourseDetail() {
                       className="mt-6 w-full rounded-full bg-amber-600 py-6 text-base font-semibold text-stone-50 shadow-[0_0_20px_rgba(217,119,6,0.3)] hover:bg-amber-700"
                     >
                       {buying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShoppingCart className="mr-2 h-4 w-4" />}
-                      {buying ? "Redirecionando…" : "Comprar agora"}
+                      {buying ? "Redirecionando…" : "Liberar acesso completo"}
                     </Button>
 
                     <button
@@ -221,10 +222,10 @@ export default function CourseDetail() {
                       {(course.highlights && course.highlights.length > 0
                         ? course.highlights
                         : [
+                            "Acesso a TODOS os cursos",
                             "Aulas em vídeo + PDFs",
                             "Acesso 12 meses",
                             "Certificado ao concluir",
-                            "Suporte da equipe",
                           ]
                       ).map((b) => (
                         <li key={b} className="flex items-start gap-3 text-stone-300">
