@@ -1,0 +1,15 @@
+{
+  "summary": "Verified marmita-fitness bug fix. All 5 backend pytest cases passed: static image /images/cat-marmita.jpg (200, image/jpeg, ~1MB), apostila /apostilas/marmita-fitness-apostila.pdf (200, PDF, >500KB), /api/courses contains all 11 expected slugs (10 dashboard courses + marmita-fitness), marmita-fitness catalog entry has correct title 'Marmitas Fitness Lucrativas' and cover_image '/images/cat-marmita.jpg', /api/courses/marmita-fitness returns exactly 7 modules and 29 lessons (6 content modules type=video + Apostila Oficial module). Frontend Playwright verified: landing page (/) renders marmita image with naturalWidth=1264 (not broken) and course detail page /curso/marmita-fitness loads title, cover image (naturalWidth=1264), and full curriculum with 7 modules visible including 'Apostila Oficial'. Dashboard grid data-level check confirmed via /api/courses (auth-gated UI not exercised as instructed).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_marmita_fitness.py", "/app/test_reports/pytest/marmita_fitness.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": ["/app/backend/tests/test_marmita_fitness.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "marmita-fitness bug fully verified (image loads, course in catalog with 7 modules/29 lessons, apostila PDF served, detail page renders). Test file /app/backend/tests/test_marmita_fitness.py can be reused as regression. Dashboard is Google-OAuth gated so not automated; verified at data layer.",
+  "rca of the issue": "Previous merge omitted lib/courses-seed.js + public/images/cat-marmita.jpg + public/apostilas/marmita-fitness-apostila.pdf, causing broken image on landing and no marmita-fitness course. Fix restored these assets + added marmita-fitness card to Dashboard CATEGORIES 'Vendas Diárias'. ensureSeeded() upserts COURSES_SEED so /api/courses now includes it. All verified passing."
+}

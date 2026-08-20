@@ -56,6 +56,18 @@ const CATEGORIES = [
           "Precificação, fotografia e estratégia de encomendas",
         ],
       },
+      {
+        slug: "marmita-fitness",
+        emoji: "🥗",
+        display: "Marmitas Fitness",
+        headline: "Marmitas congeladas de alta procura e renda recorrente toda semana.",
+        offers: [
+          "Bases da semana: carne, frango, arroz integral, legumes e feijão",
+          "Marmitas de frango, carne e peixe + panquecas fit",
+          "Higiene, embalagem e conservação de congelados",
+          "Bônus: sanduíche natural + apostila oficial",
+        ],
+      },
     ],
   },
   {

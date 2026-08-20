@@ -378,6 +378,106 @@ export const COURSES_SEED = [
     ideal_for: "Faturar alto na Páscoa",
     modules: [],
   },
+  // CATEGORIA: Comece seu Negócio (start) — Marmitas Fitness
+  {
+    slug: "marmita-fitness",
+    title: "Marmitas Fitness Lucrativas",
+    tagline: "Monte e venda marmitas fitness congeladas com alta procura e renda recorrente toda semana.",
+    description: "Curso completo de marmitas fitness: das bases (carne, frango, arroz integral, legumes e feijão) às marmitas prontas de frango, carne e peixe, além de higiene, embalagem e um bônus de sanduíche natural. Aulas em vídeo passo a passo para você começar a lucrar com comida saudável.",
+    instructor: "Cozinha Lucrativa",
+    duration: "3h 30min",
+    level: "Iniciante",
+    price: 27.00,
+    currency: "brl",
+    cover_image: "/images/cat-marmita.jpg",
+    category: "start",
+    tags: ["Público fitness", "Venda recorrente", "Baixo investimento", "Marmita saudável"],
+    initial_investment: "R$ 150 a 400",
+    sales_potential: "R$ 4.000+/mês",
+    ideal_for: "Quem quer lucrar com marmitas saudáveis e congeladas",
+    modules: [
+      {
+        id: "marmita-mod1",
+        title: "Módulo 01 — Boas-Vindas e Preparação",
+        description: "Introdução ao curso, utensílios essenciais e como higienizar e embalar suas marmitas com segurança.",
+        lessons: [
+          { id: "1-xkyPG6zOQSP-FHFZ-euqcNkv75g6l9T", title: "Boas-Vindas", type: "video", order: 1 },
+          { id: "1-cppzvkNpWaVQiGu9V-6D4C3wM-iRZMT", title: "Utensílios e Materiais", type: "video", order: 2 },
+          { id: "1-M_5S7qcj3oUnEYLbh-T8m6uyokZiNJo", title: "Higiene e Embalagem", type: "video", order: 3 },
+        ],
+      },
+      {
+        id: "marmita-mod2",
+        title: "Módulo 02 — Bases e Preparações",
+        description: "As bases que rendem a semana toda: carne moída, frango, arroz integral, legumes e feijão.",
+        lessons: [
+          { id: "1-zxxJ57WWNZPtXgXwwYWtiIWAaWJTBEp", title: "Preparação da Carne Moída", type: "video", order: 1 },
+          { id: "105LC_3xKZn79ryOogxEgmAz72VG3Lofi", title: "Preparação do Frango", type: "video", order: 2 },
+          { id: "10GhFQz-eW48hh-_hJ-JMXNsa5ztjMjrc", title: "Frango Desfiado", type: "video", order: 3 },
+          { id: "10O7ljqUEOqE45s6dZ8wAcyTAxstj6FBK", title: "Arroz Integral", type: "video", order: 4 },
+          { id: "10fPkyV9CPe6NaQHxRHraCk3ybEvo-ZGB", title: "Preparação dos Legumes", type: "video", order: 5 },
+          { id: "11184F6Zl7F5_epFRPqEVn9eHhNAzsaK4", title: "Feijão", type: "video", order: 6 },
+        ],
+      },
+      {
+        id: "marmita-mod3",
+        title: "Módulo 03 — Marmitas de Frango",
+        description: "Tulipa, estrogonofe, xadrez, grelhado, picadinho, escondidinho e risoto — o frango de todo jeito.",
+        lessons: [
+          { id: "11JIRrAoyL2Ca__2fe6eKw9ew2Ng3xmXn", title: "Tulipa de Frango", type: "video", order: 1 },
+          { id: "11b_50AAA2jrOFKBw56_fFoLwk29NaiSw", title: "Frango Desfiado com Couve", type: "video", order: 2 },
+          { id: "11tj9tK_6yjGfechIcYx8moTnQ8O6P8bx", title: "Estrogonofe de Frango", type: "video", order: 3 },
+          { id: "11zhcVd-FULnShb_gnXi60yjyO8aBhZPn", title: "Frango Grelhado", type: "video", order: 4 },
+          { id: "11ExXzw1RkFfIUJbQLpi6ASVm0THucvAX", title: "Picadinho de Frango", type: "video", order: 5 },
+          { id: "12BtB8q4MxkySQY_N8pCAQ0wmNfOPLc6w", title: "Frango Xadrez", type: "video", order: 6 },
+          { id: "12JbHhMasK0Hq9y3-vwFowzR8ccnuJf8V", title: "Escondidinho de Abóbora com Frango", type: "video", order: 7 },
+          { id: "12VImWtmZ1jTCPn27kc6tlEPHUcUYSMp1", title: "Risoto de Abobrinha", type: "video", order: 8 },
+        ],
+      },
+      {
+        id: "marmita-mod4",
+        title: "Módulo 04 — Marmitas de Carne",
+        description: "Picadinho, bife grelhado, macarrão com almôndegas, lasanha de berinjela, panquecas fit e escondidinho.",
+        lessons: [
+          { id: "12iAOLZ4EMWrWTEt4a4IWOp1ARTNZb7j0", title: "Picadinho de Carne", type: "video", order: 1 },
+          { id: "12pFWOjEt0uCeD-kuXsXl0dk2EGQ57vG6", title: "Bife Grelhado com Couve", type: "video", order: 2 },
+          { id: "12tjPLEWB7LaCldLUbNzjrMb9FHPaiQpO", title: "Macarrão com Almôndegas", type: "video", order: 3 },
+          { id: "12x_kN6Iw05_e-Lo3XuFBT-Ut30OAdHo_", title: "Lasanha de Berinjela", type: "video", order: 4 },
+          { id: "137yjNpKQ499PNdB7_b9CqauThXSnWICD", title: "Panqueca Fit de Carne Moída", type: "video", order: 5 },
+          { id: "139zCIZPTemuvEv1-qHusdpZjZAywHIyv", title: "Panqueca Fit de Frango", type: "video", order: 6 },
+          { id: "13QWqPv2i1vbD45JFuPSHZMGm0qEXAyHE", title: "Escondidinho de Carne com Batata Doce", type: "video", order: 7 },
+        ],
+      },
+      {
+        id: "marmita-mod5",
+        title: "Módulo 05 — Marmitas de Peixe",
+        description: "Tilápia assada e grelhada com legumes, brócolis, batata doce e milho.",
+        lessons: [
+          { id: "13jwwmgMz_FxGwWED963eYnjUeAGBvNz3", title: "Filé de Tilápia Assada com Legumes", type: "video", order: 1 },
+          { id: "1432K8MCiKGgzjsAfWG4Td_gy27k-P09Q", title: "Filé de Tilápia Assada com Brócolis", type: "video", order: 2 },
+          { id: "14FsMcUppdWbHFXH4b8lrpgaLNfNWCnai", title: "Tilápia Grelhada com Batata Doce e Milho", type: "video", order: 3 },
+        ],
+      },
+      {
+        id: "marmita-mod6",
+        title: "Módulo 06 — Sanduíche Natural",
+        description: "Bônus: o sanduíche natural fit para vender e complementar o seu cardápio.",
+        lessons: [
+          { id: "14Ylb0fKmrkE55_MgOaHIYk5Wxt4coc6b", title: "Sanduíche Natural", type: "video", order: 1 },
+        ],
+      },
+    ],
+    apostilas: [
+      {
+        id: "marmita-fitness-apostila-oficial",
+        title: "Apostila Completa — Marmitas Fitness",
+        type: "pdf",
+        url: "/apostilas/marmita-fitness-apostila.pdf",
+        description: "Material didático oficial do curso de Marmitas Fitness — bases, receitas de frango, carne e peixe, higiene, embalagem e precificação.",
+      },
+    ],
+  },
+
 ];
 
 export const PLANS = [
